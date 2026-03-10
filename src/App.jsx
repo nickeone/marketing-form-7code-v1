@@ -1,10 +1,11 @@
 import { useState } from "react";
 
 const steps = [
-  { id: 1, title: "Design Needed" },
-  { id: 2, title: "Campaigns" },
-  { id: 3, title: "Budget & Timeline" },
-  { id: 4, title: "Goals & Audience" },
+  { id: 1, title: "Your Details" },
+  { id: 2, title: "Design Needed" },
+  { id: 3, title: "Campaigns" },
+  { id: 4, title: "Budget & Timeline" },
+  { id: 5, title: "Goals & Audience" },
 ];
 
 const CheckBox = ({ label, checked, onChange }) => (
@@ -80,25 +81,31 @@ export default function App() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [data, setData] = useState({
-    services: [],
-    printTypes: [],
-    campaignMgmt: "",
-    campaignChannels: [],
-    campaignSituation: "",
-    budget: "",
-    timeline: "",
-    projectFrequency: "",
-    primaryGoal: "",
-    targetAudience: "",
-    geographicFocus: "",
-    additionalNotes: "",
+    name: "",
+    email: "",
+    company: "",
+    "Design Needed": [],
+    "Print / Outdoor Formats": [],
+    "Campaign Channels": [],
+    "Current Situation": "",
+    "Monthly Marketing Budget": "",
+    "Start Timeline": "",
+    "Project Frequency": "",
+    "Primary Goal": "",
+    "Target Audience": "",
+    "Geographic Focus": "",
+    "City": "",
+    "Additional Notes": "",
   });
 
-  const toggle = (field, value) => setData(d => ({ ...d, [field]: d[field].includes(value) ? d[field].filter(v => v !== value) : [...d[field], value] }));
+  const toggle = (field, value) => setData(d => ({
+    ...d,
+    [field]: d[field].includes(value) ? d[field].filter(v => v !== value) : [...d[field], value]
+  }));
   const set = (field, value) => setData(d => ({ ...d, [field]: value }));
 
-  const needsPrint = data.services.some(s => s.toLowerCase().includes("print") || s.toLowerCase().includes("outdoor") || s.toLowerCase().includes("packaging"));
-  const needsCampaignDetails = data.campaignMgmt === "Yes — full management (strategy + execution)" || data.campaignMgmt === "Only setup & launch (I'll manage after)";
+  const needsPrint = data["Design Needed"].some(s => s.toLowerCase().includes("print") || s.toLowerCase().includes("outdoor") || s.toLowerCase().includes("packaging"));
+  const isLocal = data["Geographic Focus"] === "Local (city/region)";
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -108,9 +115,9 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          services: data.services.join(", "),
-          printTypes: data.printTypes.join(", "),
-          campaignChannels: data.campaignChannels.join(", "),
+          "Design Needed": data["Design Needed"].join(", "),
+          "Print / Outdoor Formats": data["Print / Outdoor Formats"].join(", "),
+          "Campaign Channels": data["Campaign Channels"].join(", "),
         }),
       });
     } catch (err) {
@@ -121,16 +128,6 @@ export default function App() {
   };
 
   if (submitted) {
-    const summaryItems = [
-      { label: "Design needs", value: data.services.join(", ") },
-      { label: "Campaign management", value: data.campaignMgmt },
-      needsCampaignDetails && { label: "Channels", value: data.campaignChannels.join(", ") },
-      needsCampaignDetails && { label: "Current situation", value: data.campaignSituation },
-      { label: "Service budget", value: data.budget },
-      { label: "Timeline", value: data.timeline },
-      { label: "Goal", value: data.primaryGoal },
-    ].filter(Boolean);
-
     return (
       <div style={{ minHeight: "100vh", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", padding: 24 }}>
         <div style={{ textAlign: "center", maxWidth: 480, width: "100%" }}>
@@ -138,14 +135,23 @@ export default function App() {
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16L12 22L26 8" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </div>
           <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 800, color: "#fff", margin: "0 0 12px" }}>Thanks, brief received!</h2>
-          <p style={{ color: "#666", fontSize: 15, lineHeight: 1.6, margin: "0 0 32px" }}>Nicu will review your needs and come back with the best-fit specialist or agency recommendation.</p>
+          <p style={{ color: "#666", fontSize: 15, lineHeight: 1.6, margin: "0 0 32px" }}>
+            Nicu will review your needs and come back with the best-fit specialist or agency recommendation.
+          </p>
           <div style={{ background: "#111", border: "1.5px solid #2a2a2a", borderRadius: 12, padding: "20px 24px", textAlign: "left", display: "flex", flexDirection: "column", gap: 8 }}>
             <p style={{ fontSize: 13, color: "#888", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>Your Summary</p>
-            {summaryItems.map(({ label, value }) => value ? (
+            {[
+              { label: "Name", value: data.name },
+              { label: "Company", value: data.company },
+              { label: "Design Needed", value: data["Design Needed"].join(", ") },
+              { label: "Campaign Channels", value: data["Campaign Channels"].join(", ") },
+              { label: "Monthly Marketing Budget", value: data["Monthly Marketing Budget"] },
+              { label: "Primary Goal", value: data["Primary Goal"] },
+            ].filter(i => i.value).map(({ label, value }) => (
               <p key={label} style={{ color: "#e5e5e5", fontSize: 14, margin: 0 }}>
                 <span style={{ color: "#f97316" }}>{label}:</span> {value}
               </p>
-            ) : null)}
+            ))}
           </div>
         </div>
       </div>
@@ -156,7 +162,6 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: "#0a0a0a", fontFamily: "'DM Sans', sans-serif", padding: "32px 16px", display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div style={{ width: "100%", maxWidth: 560 }}>
 
-        {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f97316" }} />
@@ -166,7 +171,6 @@ export default function App() {
           <p style={{ color: "#555", fontSize: 14, margin: 0 }}>Help us understand your needs so we can recommend the right specialist.</p>
         </div>
 
-        {/* Step indicators */}
         <div style={{ display: "flex", alignItems: "center", marginBottom: 32 }}>
           {steps.map((s, i) => (
             <div key={s.id} style={{ display: "flex", alignItems: "center", flex: i < steps.length - 1 ? 1 : 0 }}>
@@ -174,85 +178,60 @@ export default function App() {
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: step > s.id ? "#f97316" : step === s.id ? "transparent" : "#111", border: `2px solid ${step >= s.id ? "#f97316" : "#2a2a2a"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: step > s.id ? "#fff" : step === s.id ? "#f97316" : "#444", flexShrink: 0 }}>
                   {step > s.id ? "✓" : s.id}
                 </div>
-                <span style={{ fontSize: 10, color: step >= s.id ? "#f97316" : "#444", whiteSpace: "nowrap", fontWeight: 600, letterSpacing: "0.03em" }}>{s.title}</span>
+                <span style={{ fontSize: 9, color: step >= s.id ? "#f97316" : "#444", whiteSpace: "nowrap", fontWeight: 600, letterSpacing: "0.03em" }}>{s.title}</span>
               </div>
-              {i < steps.length - 1 && <div style={{ flex: 1, height: 1.5, background: step > s.id ? "#f97316" : "#2a2a2a", margin: "0 6px", marginBottom: 16, transition: "background 0.3s" }} />}
+              {i < steps.length - 1 && <div style={{ flex: 1, height: 1.5, background: step > s.id ? "#f97316" : "#2a2a2a", margin: "0 4px", marginBottom: 16, transition: "background 0.3s" }} />}
             </div>
           ))}
         </div>
 
-        {/* Form Card */}
         <div style={{ background: "#0f0f0f", border: "1.5px solid #1e1e1e", borderRadius: 16, padding: "28px 24px", display: "flex", flexDirection: "column", gap: 24 }}>
 
           {step === 1 && (
             <>
+              <Field label="Your Name">
+                <input style={inputStyle} placeholder="e.g. John Smith" value={data.name} onChange={e => set("name", e.target.value)} />
+              </Field>
+              <Field label="Email Address">
+                <input style={inputStyle} type="email" placeholder="e.g. john@company.com" value={data.email} onChange={e => set("email", e.target.value)} />
+              </Field>
+              <Field label="Company Name">
+                <input style={inputStyle} placeholder="e.g. Acme Ltd." value={data.company} onChange={e => set("company", e.target.value)} />
+              </Field>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
               <Field label="Design Needed" hint="Select all that apply">
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {DESIGN_SERVICES.map(v => <CheckBox key={v} label={v} checked={data.services.includes(v)} onChange={() => toggle("services", v)} />)}
+                  {DESIGN_SERVICES.map(v => <CheckBox key={v} label={v} checked={data["Design Needed"].includes(v)} onChange={() => toggle("Design Needed", v)} />)}
                 </div>
               </Field>
               {needsPrint && (
                 <Field label="Print / Outdoor Formats" hint="Which formats specifically?">
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    {PRINT_TYPES.map(v => <CheckBox key={v} label={v} checked={data.printTypes.includes(v)} onChange={() => toggle("printTypes", v)} />)}
+                    {PRINT_TYPES.map(v => <CheckBox key={v} label={v} checked={data["Print / Outdoor Formats"].includes(v)} onChange={() => toggle("Print / Outdoor Formats", v)} />)}
                   </div>
                 </Field>
               )}
             </>
           )}
 
-          {step === 2 && (
-            <>
-              <Field label="Campaign Management" hint="Do you need someone to run the campaigns, or just the design?">
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <Radio label="Yes — full management" description="Strategy, setup, execution & reporting" value="Yes — full management (strategy + execution)" current={data.campaignMgmt} onChange={v => set("campaignMgmt", v)} />
-                  <Radio label="Only setup & launch" description="I'll take over the management after" value="Only setup & launch (I'll manage after)" current={data.campaignMgmt} onChange={v => set("campaignMgmt", v)} />
-                  <Radio label="No — just the creatives / design" value="No — just the creatives / design" current={data.campaignMgmt} onChange={v => set("campaignMgmt", v)} />
-                  <Radio label="Not sure yet, open to discuss" value="Not sure yet, open to discuss" current={data.campaignMgmt} onChange={v => set("campaignMgmt", v)} />
-                </div>
-              </Field>
-              {needsCampaignDetails && (
-                <>
-                  <Divider label="Channel details" />
-                  <Field label="Which Channels?" hint="Select all platforms you want managed">
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {CAMPAIGN_CHANNELS.map(v => <CheckBox key={v} label={v} checked={data.campaignChannels.includes(v)} onChange={() => toggle("campaignChannels", v)} />)}
-                    </div>
-                  </Field>
-                  <Field label="Current Situation" hint="Where are you starting from?">
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      <Radio label="Starting from scratch" description="No ad accounts set up yet" value="Starting from scratch — no accounts set up" current={data.campaignSituation} onChange={v => set("campaignSituation", v)} />
-                      <Radio label="Accounts exist, never ran ads" description="Pages & accounts ready but unused" value="Accounts exist but never ran ads" current={data.campaignSituation} onChange={v => set("campaignSituation", v)} />
-                      <Radio label="Ran ads before, want to improve" description="Past experience, looking for better results" value="Ran ads before, want to improve" current={data.campaignSituation} onChange={v => set("campaignSituation", v)} />
-                      <Radio label="Currently running, need takeover" description="Active campaigns that need new management" value="Already running, need someone to take over" current={data.campaignSituation} onChange={v => set("campaignSituation", v)} />
-                    </div>
-                  </Field>
-                </>
-              )}
-            </>
-          )}
-
           {step === 3 && (
             <>
-              <Field label="Service Fee Budget / Month (EUR)" hint="Design, management fees — excluding ad spend">
+              <Field label="Campaign Channels" hint="Select all platforms you want covered">
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {["< €500", "€500 – €1,500", "€1,500 – €3,000", "€3,000 – €5,000", "€5,000+", "Not sure yet"].map(v => (
-                    <Radio key={v} label={v} value={v} current={data.budget} onChange={v => set("budget", v)} />
-                  ))}
+                  {CAMPAIGN_CHANNELS.map(v => <CheckBox key={v} label={v} checked={data["Campaign Channels"].includes(v)} onChange={() => toggle("Campaign Channels", v)} />)}
                 </div>
               </Field>
-              <Field label="When do you need this to start?">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {["ASAP", "Within 2 weeks", "Within a month", "Flexible"].map(v => (
-                    <Radio key={v} label={v} value={v} current={data.timeline} onChange={v => set("timeline", v)} />
-                  ))}
-                </div>
-              </Field>
-              <Field label="Project Frequency">
+              <Divider label="Current situation" />
+              <Field label="Current Situation" hint="Where are you starting from?">
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {["One-off project", "Ongoing monthly retainer", "Seasonal / campaign-based", "Not sure"].map(v => (
-                    <Radio key={v} label={v} value={v} current={data.projectFrequency} onChange={v => set("projectFrequency", v)} />
-                  ))}
+                  <Radio label="Starting from scratch" description="No ad accounts set up yet" value="Starting from scratch — no accounts set up" current={data["Current Situation"]} onChange={v => set("Current Situation", v)} />
+                  <Radio label="Accounts exist, never ran ads" description="Pages & accounts ready but unused" value="Accounts exist but never ran ads" current={data["Current Situation"]} onChange={v => set("Current Situation", v)} />
+                  <Radio label="Ran ads before, want to improve" description="Past experience, looking for better results" value="Ran ads before, want to improve" current={data["Current Situation"]} onChange={v => set("Current Situation", v)} />
+                  <Radio label="Currently running, need takeover" description="Active campaigns that need new management" value="Already running, need someone to take over" current={data["Current Situation"]} onChange={v => set("Current Situation", v)} />
                 </div>
               </Field>
             </>
@@ -260,31 +239,61 @@ export default function App() {
 
           {step === 4 && (
             <>
+              <Field label="Monthly Marketing Budget" hint="Total budget including ad spend + service fees">
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {["< €500", "€500 – €1,500", "€1,500 – €3,000", "€3,000 – €5,000", "€5,000+", "Not sure yet"].map(v => (
+                    <Radio key={v} label={v} value={v} current={data["Monthly Marketing Budget"]} onChange={v => set("Monthly Marketing Budget", v)} />
+                  ))}
+                </div>
+              </Field>
+              <Field label="Start Timeline">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {["ASAP", "Within 2 weeks", "Within a month", "Flexible"].map(v => (
+                    <Radio key={v} label={v} value={v} current={data["Start Timeline"]} onChange={v => set("Start Timeline", v)} />
+                  ))}
+                </div>
+              </Field>
+              <Field label="Project Frequency">
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {["One-off project", "Ongoing monthly retainer", "Seasonal / campaign-based", "Not sure"].map(v => (
+                    <Radio key={v} label={v} value={v} current={data["Project Frequency"]} onChange={v => set("Project Frequency", v)} />
+                  ))}
+                </div>
+              </Field>
+            </>
+          )}
+
+          {step === 5 && (
+            <>
               <Field label="Primary Goal">
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {["Generate leads / sales", "Build brand awareness", "Promote an event / launch", "Grow social following", "Retain existing customers", "Drive website traffic"].map(v => (
-                    <Radio key={v} label={v} value={v} current={data.primaryGoal} onChange={v => set("primaryGoal", v)} />
+                    <Radio key={v} label={v} value={v} current={data["Primary Goal"]} onChange={v => set("Primary Goal", v)} />
                   ))}
                 </div>
               </Field>
               <Field label="Target Audience">
-                <input style={inputStyle} placeholder="e.g. Local homeowners aged 35–55, B2B decision makers…" value={data.targetAudience} onChange={e => set("targetAudience", e.target.value)} />
+                <input style={inputStyle} placeholder="e.g. Homeowners aged 35–55, B2B decision makers…" value={data["Target Audience"]} onChange={e => set("Target Audience", e.target.value)} />
               </Field>
               <Field label="Geographic Focus">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {["Local (city/region)", "National", "International", "Online only"].map(v => (
-                    <Radio key={v} label={v} value={v} current={data.geographicFocus} onChange={v => set("geographicFocus", v)} />
+                    <Radio key={v} label={v} value={v} current={data["Geographic Focus"]} onChange={v => set("Geographic Focus", v)} />
                   ))}
                 </div>
               </Field>
-              <Field label="Anything else we should know?" hint="Style refs, competitors, past experiences, current tools…">
-                <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} placeholder="Add any context that will help find the best match…" value={data.additionalNotes} onChange={e => set("additionalNotes", e.target.value)} />
+              {isLocal && (
+                <Field label="City / Region">
+                  <input style={inputStyle} placeholder="e.g. Cluj-Napoca, Bucharest…" value={data["City"]} onChange={e => set("City", e.target.value)} />
+                </Field>
+              )}
+              <Field label="Anything Else We Should Know?" hint="Style refs, competitors, past experiences, current tools…">
+                <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} placeholder="Add any context that will help find the best match…" value={data["Additional Notes"]} onChange={e => set("Additional Notes", e.target.value)} />
               </Field>
             </>
           )}
         </div>
 
-        {/* Navigation */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20, gap: 12 }}>
           {step > 1
             ? <button onClick={() => setStep(s => s - 1)} style={{ padding: "12px 24px", background: "transparent", border: "1.5px solid #2a2a2a", borderRadius: 8, color: "#888", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
